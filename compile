@@ -1,0 +1,23 @@
+#!/bin/bash
+cd "$(dirname "$0")"
+
+die() {
+  echo >&2 $1
+  exit 1
+}
+
+usage() {
+  echo -e >&2 "Usage: $0 id cflags..."
+  exit 2
+}
+
+
+if [[ $# < 2 ]]; then
+  usage
+fi
+
+if [ ! -d "libs/$1" ]; then
+  die "  --> download libc $1 before using."
+fi
+
+gcc -Wl,-rpath=libs/$1/lib/x86_64-linux-gnu/ -Wl,-dynamic-linker=libs/$1/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 --sysroot=libs/$1/ -Blibs/$1/lib/x86_64-linux-gnu ${@: 2}

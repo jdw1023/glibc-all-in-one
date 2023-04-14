@@ -8,12 +8,14 @@ if [ ! -d "debs" ];  then
     mkdir debs
 fi
 
-SOURCE="https://mirror.tuna.tsinghua.edu.cn/ubuntu/pool/main/g/glibc"
+# SOURCE="https://mirror.tuna.tsinghua.edu.cn/ubuntu/pool/main/g/glibc"
 # Use the source below if you feel slow, or change it on your own.
 # SOURCE="http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/"
+SOURCE="https://nyc.mirrors.clouvider.net/ubuntu/pool/main/g/glibc/"
 
 LIBC_PREFIX="libc6_"
 LIBC_DBG_PREFIX="libc6-dbg_"
+LIBC_DEV_PREFIX="libc6-dev_"
 
 die() {
   echo >&2 $1
@@ -29,6 +31,7 @@ download_single() {
   local id=$1
   local deb_name=$LIBC_PREFIX$id.deb
   local dbg_name=$LIBC_DBG_PREFIX$id.deb
+  local dev_name=$LIBC_DEV_PREFIX$id.deb
   echo "Getting $id"
   if [ -d "libs/$id" ]; then
     die "  --> Downloaded before. Remove it to download again."
@@ -41,7 +44,9 @@ download_single() {
   wget "$url" 2>/dev/null -O debs/$deb_name || die "Failed to download package from $url"
   echo "  -> Extracting libc binary package"
 
-  mkdir libs/$id
+  mkdir -p libs/$id/usr/lib
+  ln -s ./usr/lib libs/$id/lib
+  ln -s ./usr/lib libs/$id/lib64
   ./extract debs/$deb_name libs/$id
   echo "  -> Package saved to libs/$id"
 
@@ -55,6 +60,16 @@ download_single() {
   mkdir libs/$id/.debug
   ./extract debs/$dbg_name libs/$id/.debug
   echo "  -> Package saved to libs/$id/.debug"
+
+  # download dev package
+  local url="$SOURCE/$dev_name"
+  echo "  -> Location: $url"
+  echo "  -> Downloading libc dev package"
+  wget "$url" 2>/dev/null -O debs/$dev_name || die "Failed to download package from $url"
+  echo "  -> Extracting libc dev package"
+
+  ./extract debs/$dev_name libs/$id
+  echo "  -> Package saved to libs/$id"
 }
 
 if [[ $# != 1 ]]; then
