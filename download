@@ -45,8 +45,8 @@ download_single() {
   echo "  -> Extracting libc binary package"
 
   mkdir -p libs/$id/usr/lib
-  ln -s ./usr/lib libs/$id/lib
-  ln -s ./usr/lib libs/$id/lib64
+  ln -s usr/lib libs/$id/lib
+  ln -s usr/lib libs/$id/lib64
   ./extract debs/$deb_name libs/$id
   echo "  -> Package saved to libs/$id"
 

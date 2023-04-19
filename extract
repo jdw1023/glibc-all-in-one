@@ -26,16 +26,24 @@ extract() {
     else
         tar xf data.tar.* || die "tar failed"
     fi
+    find . -lname '/*' -exec sh -c '
+        for link; do
+            target=$(readlink "$link")
+            echo target $target
+            echo link $link
+            link=${link#./}
+            loc=$(dirname "$link")
+            echo link $link
+            root=$(realpath --relative-to="$loc" "./$target")
+            echo root $root
+        rm "$link"
+        ln -s "${root#/}" "$link"
+    done
+    ' _ {} +
     cd -
+    rsync -av -K $tmp/ $out
 
-    cp -rP $tmp/lib/*/* $out/usr/lib 2>/dev/null 
-    cp -rP $tmp/lib/* $out/usr/lib 2>/dev/null 
-    cp -rP $tmp/usr/lib/*/* $out/usr/lib 2>/dev/null 
-    cp -rP $tmp/lib32 $out/usr/lib32 2>/dev/null 
-    cp -rP $tmp/usr/lib/debug/lib/*/* $out 2>/dev/null
-    cp -rP $tmp/usr/lib/debug/lib32/* $out 2>/dev/null 
-    cp -rP $tmp/usr/include $tmp/usr/lib $out/usr 2>/dev/null
-    cp -rP $tmp/usr/include/*-linux-gnu/* $out/usr/include 2>/dev/null
+    #cp -rPT $tmp/ $out/  
 
     rm -rf $tmp
 }

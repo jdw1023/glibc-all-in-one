@@ -1,23 +1,31 @@
 #!/bin/bash
-cd "$(dirname "$0")"
+#cd "$(dirname "$0")" || exit
+#pwd
 
 die() {
-  echo >&2 $1
+  echo >&2 "$1"
   exit 1
 }
 
 usage() {
-  echo -e >&2 "Usage: $0 id cflags..."
+  echo -e >&2 "Usage: $0 libs_path id cflags..."
   exit 2
 }
 
 
-if [[ $# < 2 ]]; then
+if [[ $# -lt 3 ]]; then
   usage
 fi
 
-if [ ! -d "libs/$1" ]; then
-  die "  --> download libc $1 before using."
+LIBS_PATH="$1"
+ID="$2"
+
+if [ ! -d "$LIBS_PATH/$ID" ]; then
+  die "  --> download libc $ID before using."
 fi
 
-gcc -Wl,-rpath=libs/$1/lib/x86_64-linux-gnu/ -Wl,-dynamic-linker=libs/$1/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 --sysroot=libs/$1/ -Blibs/$1/lib/x86_64-linux-gnu ${@: 2}
+if [[ $ID == *"amd64"* ]]; then
+  gcc -Wl,-rpath="$LIBS_PATH"/"$ID"/lib/x86_64-linux-gnu/ -Wl,-dynamic-linker="$LIBS_PATH"/"$ID"/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 -I"$LIBS_PATH"/"$ID"/usr/include/i386-linux-gnu/  -I"$LIBS_PATH"/"$ID"/usr/include/x86_64-linux-gnu --sysroot="$LIBS_PATH"/"$ID"/  -B"$LIBS_PATH"/"$ID"/lib/x86_64-linux-gnu "${@: 3}"
+  elif [[ $ID == *"i386"* ]]; then
+  gcc -Wl,-rpath="$LIBS_PATH"/"$ID"/lib/i386-linux-gnu/ -Wl,-dynamic-linker="$LIBS_PATH"/"$ID"/lib/i386-linux-gnu/ld-linux.so.2 -I"$LIBS_PATH"/"$ID"/usr/include/i386-linux-gnu/  -I"$LIBS_PATH"/"$ID"/usr/include/i386-linux-gnu --sysroot="$LIBS_PATH"/"$ID"/ -B"$LIBS_PATH"/"$ID"/lib/i386-linux-gnu -m32 "${@: 3}"
+fi
